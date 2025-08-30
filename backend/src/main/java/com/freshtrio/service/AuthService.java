@@ -3,6 +3,8 @@ package com.freshtrio.service;
 
 import com.freshtrio.dto.AuthRequest;
 import com.freshtrio.dto.AuthResponse;
+import com.freshtrio.dto.FirebaseAuthRequest;
+import com.freshtrio.dto.GoogleAuthRequest;
 import com.freshtrio.dto.RegisterRequest;
 import com.freshtrio.dto.UserDto;
 import com.freshtrio.entity.User;
@@ -14,10 +16,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.google.firebase.auth.FirebaseAuthException;
 
 import java.time.LocalDateTime;
 
 @Service
+@org.springframework.context.annotation.Profile("!dev")
 public class AuthService {
     
     @Autowired
@@ -31,6 +35,9 @@ public class AuthService {
     
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    
+    @Autowired
+    private FirebaseService firebaseService;
     
     public AuthResponse register(RegisterRequest request) {
         // Check if user already exists
@@ -85,6 +92,114 @@ public class AuthService {
     public void logout(String token) {
         // In a production app, you might want to blacklist the token
         // For now, we'll just let it expire naturally
+    }
+    
+    public AuthResponse googleAuth(GoogleAuthRequest request) {
+        // In a real implementation, you would verify the Google ID token here
+        // For now, we'll trust the client-side verification
+        
+        // Check if user already exists
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        
+        if (user == null) {
+            // Create new user from Google auth
+            user = new User();
+            user.setEmail(request.getEmail());
+            user.setFirstName(request.getFirstName());
+            user.setLastName(request.getLastName());
+            user.setGoogleId(request.getIdToken()); // Store the Google ID
+            user.setAuthProvider(User.AuthProvider.GOOGLE);
+            user.setRole(User.Role.CUSTOMER);
+            user.setIsVerified(true); // Google users are pre-verified
+            user.setGdprConsent(true);
+            user.setGdprConsentDate(LocalDateTime.now());
+            
+            user = userRepository.save(user);
+        } else {
+            // Update existing user with Google info if not already set
+            if (user.getGoogleId() == null) {
+                user.setGoogleId(request.getIdToken());
+                user.setAuthProvider(User.AuthProvider.GOOGLE);
+                user = userRepository.save(user);
+            }
+        }
+        
+        // Generate JWT token
+        String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+        
+        return new AuthResponse(token, mapToUserDto(user));
+    }
+    
+    public AuthResponse firebaseAuth(FirebaseAuthRequest request) {
+        try {
+            // Verify Firebase ID token
+            String firebaseUid = firebaseService.getUidFromToken(request.getIdToken());
+            String email = firebaseService.getEmailFromToken(request.getIdToken());
+            String name = firebaseService.getNameFromToken(request.getIdToken());
+            String phone = firebaseService.getPhoneFromToken(request.getIdToken());
+            String provider = firebaseService.getProviderFromToken(request.getIdToken());
+            
+            // Split name into first and last name
+            String firstName = "";
+            String lastName = "";
+            if (name != null && !name.isEmpty()) {
+                String[] nameParts = name.trim().split("\\s+", 2);
+                firstName = nameParts[0];
+                if (nameParts.length > 1) {
+                    lastName = nameParts[1];
+                }
+            }
+            
+            // Check if user exists by email
+            User user = userRepository.findByEmail(email).orElse(null);
+            
+            if (user == null) {
+                // Create new user from Firebase auth
+                user = new User();
+                user.setEmail(email);
+                user.setFirstName(firstName);
+                user.setLastName(lastName);
+                user.setPhone(phone);
+                user.setGoogleId(firebaseUid); // Store Firebase UID
+                
+                // Map provider to AuthProvider enum
+                switch (provider.toLowerCase()) {
+                    case "google.com":
+                        user.setAuthProvider(User.AuthProvider.GOOGLE);
+                        break;
+                    case "facebook.com":
+                        user.setAuthProvider(User.AuthProvider.FACEBOOK);
+                        break;
+                    case "apple.com":
+                        user.setAuthProvider(User.AuthProvider.APPLE);
+                        break;
+                    default:
+                        user.setAuthProvider(User.AuthProvider.EMAIL);
+                        break;
+                }
+                
+                user.setRole(User.Role.CUSTOMER);
+                user.setIsVerified(true); // Firebase users are pre-verified
+                user.setGdprConsent(true);
+                user.setGdprConsentDate(LocalDateTime.now());
+                
+                user = userRepository.save(user);
+            } else {
+                // Update existing user with Firebase info if not already set
+                if (user.getGoogleId() == null) {
+                    user.setGoogleId(firebaseUid);
+                    user = userRepository.save(user);
+                }
+            }
+            
+            // Generate JWT token for our backend
+            String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+            
+            return new AuthResponse(token, mapToUserDto(user));
+            
+        } catch (FirebaseAuthException e) {
+            throw new RuntimeException("Firebase token verification failed: " + e.getMessage());
+        }
     }
     
     private UserDto mapToUserDto(User user) {

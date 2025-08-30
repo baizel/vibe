@@ -27,8 +27,18 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String phone;
     
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String password;
+    
+    @Column(name = "google_id")
+    private String googleId;
+    
+    @Column(name = "auth_provider")
+    @Enumerated(EnumType.STRING)
+    private AuthProvider authProvider = AuthProvider.EMAIL;
+    
+    @Column(name = "address")
+    private String address;
     
     @Enumerated(EnumType.STRING)
     private Role role = Role.CUSTOMER;
@@ -131,8 +141,21 @@ public class User implements UserDetails {
     
     public LocalDateTime getGdprConsentDate() { return gdprConsentDate; }
     public void setGdprConsentDate(LocalDateTime gdprConsentDate) { this.gdprConsentDate = gdprConsentDate; }
+    
+    public String getGoogleId() { return googleId; }
+    public void setGoogleId(String googleId) { this.googleId = googleId; }
+    
+    public AuthProvider getAuthProvider() { return authProvider; }
+    public void setAuthProvider(AuthProvider authProvider) { this.authProvider = authProvider; }
+    
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
     public enum Role {
         CUSTOMER, DRIVER, ADMIN
+    }
+    
+    public enum AuthProvider {
+        EMAIL, GOOGLE, FACEBOOK, APPLE
     }
 }

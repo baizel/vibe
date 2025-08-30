@@ -10,9 +10,13 @@ import {
   SafeAreaView,
   TextInput,
   Alert,
+  Platform,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { colors, commonStyles, productStyles } from "../styles/globalStyles";
+import { productAPI } from "../services/api";
 
 interface Product {
   id: string;
@@ -34,6 +38,11 @@ const ProductsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const initialCategory = route.params?.category || "all";
+  
+  const { width } = Dimensions.get('window');
+  const isWeb = Platform.OS === 'web';
+  const isTablet = width >= 768;
+  const isDesktop = width >= 1024;
 
   useEffect(() => {
     loadProducts();
@@ -46,92 +55,11 @@ const ProductsScreen: React.FC = () => {
 
   const loadProducts = async () => {
     try {
-      // Mock data for MVP
-      const mockProducts: Product[] = [
-        {
-          id: "1",
-          name: "Premium Beef Ribeye",
-          description: "Fresh, high-quality ribeye steak perfect for grilling",
-          price: 28.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ribeye",
-          category: "beef",
-          unit: "kg",
-        },
-        {
-          id: "2",
-          name: "Free Range Chicken Breast",
-          description: "Organic chicken breast fillets, hormone-free",
-          price: 12.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Chicken",
-          category: "chicken",
-          unit: "kg",
-        },
-        {
-          id: "3",
-          name: "Fresh Salmon Fillet",
-          description: "Wild-caught salmon fillets, rich in omega-3",
-          price: 24.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Salmon",
-          category: "seafood",
-          unit: "kg",
-        },
-        {
-          id: "4",
-          name: "Pork Tenderloin",
-          description: "Lean pork tenderloin cuts, perfect for roasting",
-          price: 16.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork",
-          category: "pork",
-          unit: "kg",
-        },
-        {
-          id: "5",
-          name: "Ground Beef 80/20",
-          description: "Fresh ground beef, 80% lean, perfect for burgers",
-          price: 8.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ground+Beef",
-          category: "beef",
-          unit: "kg",
-        },
-        {
-          id: "6",
-          name: "Chicken Thighs",
-          description: "Juicy chicken thighs with skin, bone-in",
-          price: 9.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Thighs",
-          category: "chicken",
-          unit: "kg",
-        },
-        {
-          id: "7",
-          name: "Fresh Cod Fillet",
-          description: "White fish fillet, mild flavor, great for frying",
-          price: 18.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Cod",
-          category: "seafood",
-          unit: "kg",
-        },
-        {
-          id: "8",
-          name: "Pork Chops",
-          description: "Bone-in pork chops, center cut, premium quality",
-          price: 14.99,
-          imageUrl:
-            "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork+Chops",
-          category: "pork",
-          unit: "kg",
-        },
-      ];
-
-      setProducts(mockProducts);
+      const response = await productAPI.getProducts();
+      const productsData = response.content || response;
+      setProducts(productsData);
     } catch (error) {
+      console.error("Failed to load products:", error);
       Alert.alert("Error", "Failed to load products");
     } finally {
       setIsLoading(false);
@@ -165,26 +93,57 @@ const ProductsScreen: React.FC = () => {
     navigation.navigate("ProductDetail", { product });
   };
 
-  const categories = ["all", "beef", "chicken", "pork", "seafood"];
+  const [categories, setCategories] = useState(["all"]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await productAPI.getCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+    }
+  };
+
+  // Calculate responsive grid
+  const getNumColumns = () => {
+    if (isDesktop) return 4;
+    if (isTablet) return 3;
+    return 2;
+  };
+
+  const getProductWidth = () => {
+    const numColumns = getNumColumns();
+    const padding = isWeb ? 40 : 20;
+    const margin = 10;
+    return `${(100 / numColumns) - (margin * 2 / numColumns)}%`;
+  };
 
   const renderProduct = ({ item }: { item: Product }) => (
     <TouchableOpacity
-      style={styles.productCard}
+      style={[
+        productStyles.productCard,
+        isWeb && { width: getProductWidth() },
+        isDesktop && productStyles.productCardDesktop
+      ]}
       onPress={() => navigateToProduct(item)}
     >
-      <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
-      <View style={styles.productInfo}>
-        <Text style={styles.productName} numberOfLines={2}>
+      <Image source={{ uri: item.imageUrl }} style={productStyles.productImage} />
+      <View style={productStyles.productInfo}>
+        <Text style={productStyles.productName} numberOfLines={2}>
           {item.name}
         </Text>
-        <Text style={styles.productDescription} numberOfLines={2}>
+        <Text style={productStyles.productDescription} numberOfLines={2}>
           {item.description}
         </Text>
-        <View style={styles.productFooter}>
-          <Text style={styles.productPrice}>
+        <View style={productStyles.productFooter}>
+          <Text style={productStyles.productPrice}>
             £{item.price.toFixed(2)}/{item.unit}
           </Text>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity style={productStyles.addButton}>
             <Ionicons name="add" size={20} color="white" />
           </TouchableOpacity>
         </View>
@@ -192,67 +151,86 @@ const ProductsScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
+  const containerStyle = [
+    commonStyles.container,
+    isWeb && commonStyles.webContainer,
+  ];
+
+  const contentContainerStyle = [
+    commonStyles.webContent,
+    isDesktop && commonStyles.desktopContent
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Products</Text>
-      </View>
+    <SafeAreaView style={containerStyle}>
+      <View style={contentContainerStyle}>
+        {/* Header - hidden on web since we have navigation header */}
+        {!isWeb && (
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Products</Text>
+          </View>
+        )}
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color="#666"
-          style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search products..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+        {/* Search and Filter Section */}
+        <View style={[styles.searchFilterSection, isDesktop && styles.searchFilterSectionDesktop]}>
+          {/* Search Bar */}
+          <View style={[styles.searchContainer, isDesktop && styles.searchContainerDesktop]}>
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color="#666"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search products..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
 
-      {/* Category Filter */}
-      <View style={styles.categoryFilter}>
+          {/* Category Filter */}
+          <View style={[styles.categoryFilter, isDesktop && styles.categoryFilterDesktop]}>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={categories}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.categoryFilterButton,
+                    selectedCategory === item && styles.categoryFilterButtonActive,
+                  ]}
+                  onPress={() => setSelectedCategory(item)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryFilterText,
+                      selectedCategory === item && styles.categoryFilterTextActive,
+                    ]}
+                  >
+                    {item.charAt(0).toUpperCase() + item.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+
+        {/* Products List */}
         <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={categories}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.categoryFilterButton,
-                selectedCategory === item && styles.categoryFilterButtonActive,
-              ]}
-              onPress={() => setSelectedCategory(item)}
-            >
-              <Text
-                style={[
-                  styles.categoryFilterText,
-                  selectedCategory === item && styles.categoryFilterTextActive,
-                ]}
-              >
-                {item.charAt(0).toUpperCase() + item.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          )}
+          data={filteredProducts}
+          renderItem={renderProduct}
+          keyExtractor={(item) => item.id}
+          numColumns={getNumColumns()}
+          key={getNumColumns()} // Force re-render when columns change
+          contentContainerStyle={[styles.productsList, isDesktop && styles.productsListDesktop]}
+          refreshing={isLoading}
+          onRefresh={loadProducts}
+          showsVerticalScrollIndicator={false}
         />
       </View>
-
-      {/* Products List */}
-      <FlatList
-        data={filteredProducts}
-        renderItem={renderProduct}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.productsList}
-        refreshing={isLoading}
-        onRefresh={loadProducts}
-      />
     </SafeAreaView>
   );
 };
@@ -261,6 +239,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  webContainer: {
+    backgroundColor: "#f8f9fa",
+  },
+  desktopContainer: {
+    backgroundColor: "#f8f9fa",
+  },
+  content: {
+    flex: 1,
+  },
+  webContent: {
+    maxWidth: 1200,
+    marginHorizontal: 'auto',
+    width: '100%',
+  },
+  desktopContent: {
+    paddingHorizontal: 40,
+    paddingTop: 20,
   },
   header: {
     flexDirection: "row",
@@ -273,14 +269,31 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
+  searchFilterSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  searchFilterSectionDesktop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 40,
+    paddingHorizontal: 0,
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
-    marginHorizontal: 20,
+    backgroundColor: "#fff",
     marginBottom: 15,
     borderRadius: 12,
     paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: "#e1e8ed",
+  },
+  searchContainerDesktop: {
+    flex: 1,
+    marginBottom: 0,
+    height: 48,
   },
   searchIcon: {
     marginRight: 10,
@@ -291,8 +304,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   categoryFilter: {
-    paddingHorizontal: 20,
     marginBottom: 15,
+  },
+  categoryFilterDesktop: {
+    marginBottom: 0,
   },
   categoryFilterButton: {
     paddingHorizontal: 20,
@@ -316,13 +331,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
+  productsListDesktop: {
+    paddingHorizontal: 0,
+    paddingBottom: 40,
+  },
   productCard: {
     width: "48%",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#fff",
     borderRadius: 12,
     marginBottom: 15,
     marginHorizontal: "1%",
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e1e8ed",
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        cursor: 'pointer',
+      }
+    }),
+  },
+  productCardDesktop: {
+    marginHorizontal: 5,
+    marginBottom: 20,
+    ...Platform.select({
+      web: {
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        }
+      }
+    }),
   },
   productImage: {
     width: "100%",

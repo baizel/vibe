@@ -3,6 +3,8 @@ package com.freshtrio.controller;
 
 import com.freshtrio.dto.AuthRequest;
 import com.freshtrio.dto.AuthResponse;
+import com.freshtrio.dto.FirebaseAuthRequest;
+import com.freshtrio.dto.GoogleAuthRequest;
 import com.freshtrio.dto.RegisterRequest;
 import com.freshtrio.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
+@org.springframework.context.annotation.Profile("!dev")
 public class AuthController {
     
     @Autowired
@@ -41,5 +44,17 @@ public class AuthController {
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
         return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleAuth(@Valid @RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.googleAuth(request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/firebase")
+    public ResponseEntity<AuthResponse> firebaseAuth(@Valid @RequestBody FirebaseAuthRequest request) {
+        AuthResponse response = authService.firebaseAuth(request);
+        return ResponseEntity.ok(response);
     }
 }

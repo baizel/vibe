@@ -1,4 +1,7 @@
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/Product.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/dto/FirebaseAuthRequest.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/dto/GoogleAuthRequest.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/config/DevWebConfig.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/OrderItem.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/User.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/service/ProductService.java
@@ -14,3 +17,5 @@
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/controller/ProductController.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/FreshTrioApplication.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/dto/UserDto.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/service/FirebaseService.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/config/WebConfig.java
