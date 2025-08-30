@@ -8,13 +8,10 @@ import { useAuth } from "../context/AuthContext";
 import HomeScreen from "../screens/HomeScreen";
 import ProductsScreen from "../screens/ProductsScreen";
 import CartScreen from "../screens/CartScreen";
-// import OrdersScreen from "../screens/OrdersScreen";
-// import ProfileScreen from "../screens/ProfileScreen";
+import OrdersScreen from "../screens/OrdersScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 import ProductDetailScreen from "../screens/ProductDetailScreen";
 import CheckoutScreen from "../screens/CheckoutScreen";
-// import OrderTrackingScreen from "../screens/OrderTrackingScreen";
-// import DriverDashboard from "../screens/driver/DriverDashboard";
-// import DriverRouteScreen from "../screens/driver/DriverRouteScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -23,7 +20,7 @@ const CustomerTabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
-        let iconName;
+        let iconName: keyof typeof Ionicons.glyphMap;
         switch (route.name) {
           case "Home":
             iconName = focused ? "home" : "home-outline";
@@ -47,13 +44,14 @@ const CustomerTabNavigator = () => (
       },
       tabBarActiveTintColor: "#2ECC71",
       tabBarInactiveTintColor: "gray",
+      headerShown: false,
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Products" component={ProductsScreen} />
     <Tab.Screen name="Cart" component={CartScreen} />
-    {/* <Tab.Screen name="Orders" component={OrdersScreen} /> */}
-    {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
+    <Tab.Screen name="Orders" component={OrdersScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
 );
 
@@ -61,7 +59,7 @@ const DriverTabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
-        let iconName;
+        let iconName: keyof typeof Ionicons.glyphMap;
         switch (route.name) {
           case "Dashboard":
             iconName = focused ? "speedometer" : "speedometer-outline";
@@ -79,11 +77,12 @@ const DriverTabNavigator = () => (
       },
       tabBarActiveTintColor: "#3498DB",
       tabBarInactiveTintColor: "gray",
+      headerShown: false,
     })}
   >
-    {/* <Tab.Screen name="Dashboard" component={DriverDashboard} /> */}
-    {/* <Tab.Screen name="Routes" component={DriverRouteScreen} /> */}
-    <Tab.Screen name="Profile" component={HomeScreen} />
+    <Tab.Screen name="Dashboard" component={HomeScreen} />
+    <Tab.Screen name="Routes" component={HomeScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
 );
 
@@ -97,9 +96,16 @@ export default function MainNavigator() {
       ) : (
         <>
           <Stack.Screen name="CustomerTabs" component={CustomerTabNavigator} />
-          <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-          <Stack.Screen name="Checkout" component={CheckoutScreen} />
-          {/* <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} /> */}
+          <Stack.Screen
+            name="ProductDetail"
+            component={ProductDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Checkout"
+            component={CheckoutScreen}
+            options={{ headerShown: false }}
+          />
         </>
       )}
     </Stack.Navigator>

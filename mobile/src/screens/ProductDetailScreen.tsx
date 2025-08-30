@@ -15,12 +15,22 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../store/cartSlice";
 
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  category: string;
+  unit: string;
+}
+
 const ProductDetailScreen: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
-  const navigation = useNavigation();
-  const route = useRoute();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const dispatch = useDispatch();
-  const { product } = route.params;
+  const { product }: { product: Product } = route.params;
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
   const decreaseQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
@@ -102,14 +112,10 @@ const ProductDetailScreen: React.FC = () => {
   );
 };
 
-// Common Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  scrollView: {
-    flex: 1,
   },
   header: {
     flexDirection: "row",
@@ -117,183 +123,40 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     paddingTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
   },
-  greeting: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#2ECC71",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 4,
-  },
-  notificationButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "#F8F9FA",
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  seeAllText: {
-    color: "#2ECC71",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  categoriesScroll: {
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
-  },
-  categoryCard: {
-    alignItems: "center",
-    marginRight: 20,
-  },
-  categoryIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  categoryEmoji: {
-    fontSize: 24,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  productsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  productCard: {
-    width: "48%",
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-    marginBottom: 15,
-    overflow: "hidden",
+  content: {
+    flex: 1,
   },
   productImage: {
     width: "100%",
-    height: 120,
+    height: 250,
     backgroundColor: "#E0E0E0",
   },
   productInfo: {
-    padding: 12,
+    padding: 20,
   },
   productName: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  productDescription: {
-    fontSize: 12,
-    color: "#666",
+    fontSize: 24,
+    fontWeight: "bold",
     marginBottom: 8,
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#2ECC71",
+    marginBottom: 16,
   },
-  productFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#2ECC71",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  quickActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  quickActionCard: {
-    flex: 1,
-    alignItems: "center",
-    padding: 20,
-    marginHorizontal: 5,
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-  },
-  quickActionText: {
-    marginTop: 8,
-    fontSize: 14,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  // Products Screen Styles
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8F9FA",
-    marginHorizontal: 20,
-    marginBottom: 15,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 45,
+  productDescription: {
     fontSize: 16,
-  },
-  categoryFilter: {
-    paddingHorizontal: 20,
-    marginBottom: 15,
-  },
-  categoryFilterButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F8F9FA",
-    marginRight: 10,
-  },
-  categoryFilterButtonActive: {
-    backgroundColor: "#2ECC71",
-  },
-  categoryFilterText: {
-    fontSize: 14,
-    fontWeight: "500",
     color: "#666",
-  },
-  categoryFilterTextActive: {
-    color: "white",
-  },
-  productsList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  // Product Detail Screen Styles
-  content: {
-    flex: 1,
+    lineHeight: 24,
+    marginBottom: 20,
   },
   quantitySection: {
     flexDirection: "row",

@@ -12,8 +12,17 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { productAPI } from "../services/api";
 import { useNavigation, useRoute } from "@react-navigation/native";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  category: string;
+  unit: string;
+}
 
 const ProductsScreen: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -22,8 +31,8 @@ const ProductsScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
 
-  const navigation = useNavigation();
-  const route = useRoute();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const initialCategory = route.params?.category || "all";
 
   useEffect(() => {
@@ -37,8 +46,91 @@ const ProductsScreen: React.FC = () => {
 
   const loadProducts = async () => {
     try {
-      const data = await productAPI.getProducts();
-      setProducts(data);
+      // Mock data for MVP
+      const mockProducts: Product[] = [
+        {
+          id: "1",
+          name: "Premium Beef Ribeye",
+          description: "Fresh, high-quality ribeye steak perfect for grilling",
+          price: 28.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ribeye",
+          category: "beef",
+          unit: "kg",
+        },
+        {
+          id: "2",
+          name: "Free Range Chicken Breast",
+          description: "Organic chicken breast fillets, hormone-free",
+          price: 12.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Chicken",
+          category: "chicken",
+          unit: "kg",
+        },
+        {
+          id: "3",
+          name: "Fresh Salmon Fillet",
+          description: "Wild-caught salmon fillets, rich in omega-3",
+          price: 24.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Salmon",
+          category: "seafood",
+          unit: "kg",
+        },
+        {
+          id: "4",
+          name: "Pork Tenderloin",
+          description: "Lean pork tenderloin cuts, perfect for roasting",
+          price: 16.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork",
+          category: "pork",
+          unit: "kg",
+        },
+        {
+          id: "5",
+          name: "Ground Beef 80/20",
+          description: "Fresh ground beef, 80% lean, perfect for burgers",
+          price: 8.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ground+Beef",
+          category: "beef",
+          unit: "kg",
+        },
+        {
+          id: "6",
+          name: "Chicken Thighs",
+          description: "Juicy chicken thighs with skin, bone-in",
+          price: 9.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Thighs",
+          category: "chicken",
+          unit: "kg",
+        },
+        {
+          id: "7",
+          name: "Fresh Cod Fillet",
+          description: "White fish fillet, mild flavor, great for frying",
+          price: 18.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Cod",
+          category: "seafood",
+          unit: "kg",
+        },
+        {
+          id: "8",
+          name: "Pork Chops",
+          description: "Bone-in pork chops, center cut, premium quality",
+          price: 14.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork+Chops",
+          category: "pork",
+          unit: "kg",
+        },
+      ];
+
+      setProducts(mockProducts);
     } catch (error) {
       Alert.alert("Error", "Failed to load products");
     } finally {
@@ -165,14 +257,10 @@ const ProductsScreen: React.FC = () => {
   );
 };
 
-// Common Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  scrollView: {
-    flex: 1,
   },
   header: {
     flexDirection: "row",
@@ -185,132 +273,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
-  greeting: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#2ECC71",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 4,
-  },
-  notificationButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "#F8F9FA",
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  seeAllText: {
-    color: "#2ECC71",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  categoriesScroll: {
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
-  },
-  categoryCard: {
-    alignItems: "center",
-    marginRight: 20,
-  },
-  categoryIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  categoryEmoji: {
-    fontSize: 24,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  productsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  productCard: {
-    width: "48%",
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-    marginBottom: 15,
-    overflow: "hidden",
-  },
-  productImage: {
-    width: "100%",
-    height: 120,
-    backgroundColor: "#E0E0E0",
-  },
-  productInfo: {
-    padding: 12,
-  },
-  productName: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  productDescription: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 8,
-  },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2ECC71",
-  },
-  productFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#2ECC71",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  quickActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  quickActionCard: {
-    flex: 1,
-    alignItems: "center",
-    padding: 20,
-    marginHorizontal: 5,
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-  },
-  quickActionText: {
-    marginTop: 8,
-    fontSize: 14,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  // Products Screen Styles
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -354,67 +316,50 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  // Product Detail Screen Styles
-  content: {
-    flex: 1,
+  productCard: {
+    width: "48%",
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    marginBottom: 15,
+    marginHorizontal: "1%",
+    overflow: "hidden",
   },
-  quantitySection: {
+  productImage: {
+    width: "100%",
+    height: 120,
+    backgroundColor: "#E0E0E0",
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productName: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  productDescription: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 8,
+  },
+  productPrice: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2ECC71",
+  },
+  productFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
-    paddingVertical: 15,
+    marginTop: 8,
   },
-  quantityLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  quantityControls: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  quantityButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#2ECC71",
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#2ECC71",
     justifyContent: "center",
     alignItems: "center",
-  },
-  quantityText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginHorizontal: 20,
-  },
-  totalSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    paddingTop: 15,
-    marginTop: 15,
-  },
-  totalText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#2ECC71",
-    textAlign: "center",
-  },
-  footer: {
-    padding: 20,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-  },
-  addToCartButton: {
-    backgroundColor: "#2ECC71",
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  addToCartText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
   },
 });
 

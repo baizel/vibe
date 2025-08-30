@@ -1,4 +1,3 @@
-// src/screens/CartScreen.tsx - Shopping Cart
 import React from "react";
 import {
   View,
@@ -107,7 +106,7 @@ const CartScreen: React.FC = () => {
           </Text>
           <TouchableOpacity
             style={styles.shopButton}
-            onPress={() => navigation.navigate("Products")}
+            onPress={() => navigation.navigate("Product")}
           >
             <Text style={styles.shopButtonText}>Start Shopping</Text>
           </TouchableOpacity>

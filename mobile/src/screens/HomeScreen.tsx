@@ -31,7 +31,7 @@ const HomeScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     loadFeaturedProducts();
@@ -39,8 +39,51 @@ const HomeScreen: React.FC = () => {
 
   const loadFeaturedProducts = async () => {
     try {
-      const products = await productAPI.getProducts();
-      setFeaturedProducts(products.slice(0, 4)); // Show first 4 as featured
+      // Mock data for now since API might not be ready
+      const mockProducts: Product[] = [
+        {
+          id: "1",
+          name: "Premium Beef Ribeye",
+          description: "Fresh, high-quality ribeye steak",
+          price: 28.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ribeye",
+          category: "beef",
+          unit: "kg",
+        },
+        {
+          id: "2",
+          name: "Free Range Chicken Breast",
+          description: "Organic chicken breast fillets",
+          price: 12.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Chicken",
+          category: "chicken",
+          unit: "kg",
+        },
+        {
+          id: "3",
+          name: "Fresh Salmon Fillet",
+          description: "Wild-caught salmon fillets",
+          price: 24.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Salmon",
+          category: "seafood",
+          unit: "kg",
+        },
+        {
+          id: "4",
+          name: "Pork Tenderloin",
+          description: "Lean pork tenderloin cuts",
+          price: 16.99,
+          imageUrl:
+            "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork",
+          category: "pork",
+          unit: "kg",
+        },
+      ];
+
+      setFeaturedProducts(mockProducts);
     } catch (error) {
       Alert.alert("Error", "Failed to load products");
     } finally {
@@ -73,7 +116,9 @@ const HomeScreen: React.FC = () => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hello, {user?.firstName}!</Text>
+            <Text style={styles.greeting}>
+              Hello, {user?.firstName || "Customer"}!
+            </Text>
             <Text style={styles.subtitle}>
               Fresh meat delivered to your door
             </Text>
@@ -183,15 +228,9 @@ const HomeScreen: React.FC = () => {
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={styles.quickActionCard}
-              onPress={() => navigation.navigate("Orders")}
-            >
-              <Ionicons name="receipt-outline" size={32} color="#2ECC71" />
-              <Text style={styles.quickActionText}>My Orders</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={() => navigation.navigate("Cart")}
+              onPress={() =>
+                navigation.navigate("CustomerTabs", { screen: "Cart" })
+              }
             >
               <Ionicons name="basket-outline" size={32} color="#2ECC71" />
               <Text style={styles.quickActionText}>My Cart</Text>
@@ -204,6 +243,19 @@ const HomeScreen: React.FC = () => {
               <Ionicons name="search-outline" size={32} color="#2ECC71" />
               <Text style={styles.quickActionText}>Browse</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() =>
+                Alert.alert(
+                  "Coming Soon",
+                  "Orders feature will be available soon!"
+                )
+              }
+            >
+              <Ionicons name="receipt-outline" size={32} color="#2ECC71" />
+              <Text style={styles.quickActionText}>Orders</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -211,7 +263,6 @@ const HomeScreen: React.FC = () => {
   );
 };
 
-// Common Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -226,10 +277,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     paddingTop: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
   },
   greeting: {
     fontSize: 24,
@@ -314,23 +361,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 4,
   },
-  productDescription: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 8,
-  },
   productPrice: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#2ECC71",
   },
-  productFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-  },
   addButton: {
+    position: "absolute",
+    bottom: 12,
+    right: 12,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -356,112 +395,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
   },
-  // Products Screen Styles
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8F9FA",
-    marginHorizontal: 20,
-    marginBottom: 15,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 45,
-    fontSize: 16,
-  },
-  categoryFilter: {
-    paddingHorizontal: 20,
-    marginBottom: 15,
-  },
-  categoryFilterButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F8F9FA",
-    marginRight: 10,
-  },
-  categoryFilterButtonActive: {
-    backgroundColor: "#2ECC71",
-  },
-  categoryFilterText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
-  },
-  categoryFilterTextActive: {
-    color: "white",
-  },
-  productsList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  // Product Detail Screen Styles
-  content: {
-    flex: 1,
-  },
-  quantitySection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    paddingVertical: 15,
-  },
-  quantityLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  quantityControls: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  quantityButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#2ECC71",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  quantityText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginHorizontal: 20,
-  },
-  totalSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    paddingTop: 15,
-    marginTop: 15,
-  },
-  totalText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#2ECC71",
-    textAlign: "center",
-  },
-  footer: {
-    padding: 20,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-  },
-  addToCartButton: {
-    backgroundColor: "#2ECC71",
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  addToCartText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
 });
 
-export { HomeScreen };
+export default HomeScreen;
