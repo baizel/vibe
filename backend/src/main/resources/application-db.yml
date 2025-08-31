@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: freshtrio-api-db
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/freshtrio
+    username: freshtrio_user
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: false # Database tables already created manually
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    com.freshtrio: DEBUG
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Database Testing Configuration
+app:
+  jwt:
+    secret: db-test-jwt-secret-key-for-database-testing
+    expiration: 86400000 # 24 hours
+
+  cors:
+    allowed-origins: "*"
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"

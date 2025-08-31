@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "FreshTrio",
-    "slug": "fresh-trio-mobile",
+    "slug": "freshtrio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -36,8 +36,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "c96f9448-911f-4f0c-8d7b-cdf965a49116"
       }
-    }
+    },
+    "owner": "baizel"
   }
 }

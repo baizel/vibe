@@ -1,128 +1,69 @@
 package com.freshtrio.service;
 
 import com.freshtrio.entity.Product;
+import com.freshtrio.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
     
-    private final List<Product> mockProducts;
-    private final List<String> categories = Arrays.asList("all", "beef", "chicken", "pork", "seafood");
+    @Autowired
+    private ProductRepository productRepository;
     
-    public ProductService() {
-        // Initialize mock products data
-        mockProducts = Arrays.asList(
-            createProduct("Premium Beef Ribeye", 
-                "Fresh, high-quality ribeye steak perfect for grilling", 
-                "beef", new BigDecimal("28.99"), "kg",
-                "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ribeye"),
-                
-            createProduct("Free Range Chicken Breast", 
-                "Organic chicken breast fillets, hormone-free", 
-                "chicken", new BigDecimal("12.99"), "kg",
-                "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Chicken"),
-                
-            createProduct("Fresh Salmon Fillet", 
-                "Wild-caught salmon fillets, rich in omega-3", 
-                "seafood", new BigDecimal("24.99"), "kg",
-                "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Salmon"),
-                
-            createProduct("Pork Tenderloin", 
-                "Lean pork tenderloin cuts, perfect for roasting", 
-                "pork", new BigDecimal("16.99"), "kg",
-                "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork"),
-                
-            createProduct("Ground Beef 80/20", 
-                "Fresh ground beef, 80% lean, perfect for burgers", 
-                "beef", new BigDecimal("8.99"), "kg",
-                "https://via.placeholder.com/200x120/FF6B6B/FFFFFF?text=Ground+Beef"),
-                
-            createProduct("Chicken Thighs", 
-                "Juicy chicken thighs with skin, bone-in", 
-                "chicken", new BigDecimal("9.99"), "kg",
-                "https://via.placeholder.com/200x120/4ECDC4/FFFFFF?text=Thighs"),
-                
-            createProduct("Fresh Cod Fillet", 
-                "White fish fillet, mild flavor, great for frying", 
-                "seafood", new BigDecimal("18.99"), "kg",
-                "https://via.placeholder.com/200x120/45B7D1/FFFFFF?text=Cod"),
-                
-            createProduct("Pork Chops", 
-                "Bone-in pork chops, center cut, premium quality", 
-                "pork", new BigDecimal("14.99"), "kg",
-                "https://via.placeholder.com/200x120/F7DC6F/FFFFFF?text=Pork+Chops")
-        );
-    }
-    
-    private Product createProduct(String name, String description, String category, 
-                                BigDecimal price, String unit, String imageUrl) {
-        Product product = new Product(name, description, category, price, unit);
-        product.setId(UUID.randomUUID());
-        product.setImageUrl(imageUrl);
-        return product;
-    }
-
     public Page<Product> getAllProducts(String category, Pageable pageable) {
-        List<Product> filteredProducts = mockProducts;
-        
-        // Filter by category if specified
-        if (category != null && !category.equals("all")) {
-            filteredProducts = mockProducts.stream()
-                .filter(product -> product.getCategory().equalsIgnoreCase(category))
-                .collect(Collectors.toList());
+        if (category == null || category.equals("all")) {
+            return productRepository.findByIsActiveTrue(pageable);
+        } else {
+            return productRepository.findByCategoryAndIsActiveTrue(category, pageable);
         }
-        
-        // Apply pagination
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filteredProducts.size());
-        
-        if (start > filteredProducts.size()) {
-            return new PageImpl<>(List.of(), pageable, filteredProducts.size());
-        }
-        
-        List<Product> pageContent = filteredProducts.subList(start, end);
-        return new PageImpl<>(pageContent, pageable, filteredProducts.size());
     }
 
-    public Product getProductById(UUID id) {
-        return mockProducts.stream()
-            .filter(product -> product.getId().equals(id))
-            .findFirst()
-            .orElse(null);
+    public Optional<Product> getProductById(UUID id) {
+        return productRepository.findById(id);
     }
 
     public List<String> getCategories() {
+        List<String> categories = new ArrayList<>();
+        categories.add("all");
+        categories.addAll(productRepository.findDistinctCategories());
         return categories;
     }
 
-    public Page<Product> searchProducts(String q, Pageable pageable) {
-        String query = q.toLowerCase();
-        List<Product> searchResults = mockProducts.stream()
-            .filter(product -> 
-                product.getName().toLowerCase().contains(query) ||
-                product.getDescription().toLowerCase().contains(query) ||
-                product.getCategory().toLowerCase().contains(query)
-            )
-            .collect(Collectors.toList());
-            
-        // Apply pagination
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), searchResults.size());
-        
-        if (start > searchResults.size()) {
-            return new PageImpl<>(List.of(), pageable, searchResults.size());
+    public Page<Product> searchProducts(String query, Pageable pageable) {
+        return productRepository.searchProducts(query, pageable);
+    }
+    
+    public Page<Product> searchProductsByCategory(String query, String category, Pageable pageable) {
+        if (category == null || category.equals("all")) {
+            return searchProducts(query, pageable);
+        } else {
+            return productRepository.searchProductsByCategory(query, category, pageable);
         }
-        
-        List<Product> pageContent = searchResults.subList(start, end);
-        return new PageImpl<>(pageContent, pageable, searchResults.size());
+    }
+    
+    // Admin methods for managing products
+    public Product saveProduct(Product product) {
+        return productRepository.save(product);
+    }
+    
+    public void deleteProduct(UUID id) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            Product p = product.get();
+            p.setIsActive(false); // Soft delete
+            productRepository.save(p);
+        }
+    }
+    
+    public List<Product> getAllProductsIncludingInactive() {
+        return productRepository.findAll();
     }
 }

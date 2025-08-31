@@ -30,8 +30,9 @@ public class ProductController {
     
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable UUID id) {
-        Product product = productService.getProductById(id);
-        return ResponseEntity.ok(product);
+        return productService.getProductById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
     
     @GetMapping("/categories")

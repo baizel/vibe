@@ -11,6 +11,7 @@ import com.freshtrio.entity.User;
 import com.freshtrio.repository.UserRepository;
 import com.freshtrio.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,14 +25,14 @@ import java.time.LocalDateTime;
 @org.springframework.context.annotation.Profile("!dev")
 public class AuthService {
     
-    @Autowired
+    @Qualifier("NoOpAuthenticationManager")
     private AuthenticationManager authenticationManager;
     
     @Autowired
     private UserRepository userRepository;
     
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+//    @Autowired
+//    private PasswordEncoder passwordEncoder;
     
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -48,7 +49,7 @@ public class AuthService {
         // Create new user
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+//        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setPhone(request.getPhone());

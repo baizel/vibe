@@ -4,6 +4,7 @@
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/config/DevWebConfig.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/OrderItem.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/User.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/repository/ProductRepository.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/service/ProductService.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/repository/UserRepository.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/Address.java
@@ -12,6 +13,7 @@
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/service/AuthService.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/security/JwtTokenProvider.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/dto/AuthRequest.java
+/Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/Supplier.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/entity/Order.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/dto/AuthResponse.java
 /Users/baizel/project/fresh-trio/backend/src/main/java/com/freshtrio/controller/ProductController.java

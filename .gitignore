@@ -1,0 +1,81 @@
+# ====================================================
+# Root .gitignore for Expo (React Native) + Spring Boot
+# ====================================================
+
+# ------------------------------
+# OS / Editors
+# ------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.iml
+
+# ------------------------------
+# Environment / Secrets
+# ------------------------------
+.env
+.env.local
+.env.*
+*.keystore
+*.jks
+
+# ------------------------------
+# Mobile (Expo / React Native)
+# ------------------------------
+mobile/node_modules/
+mobile/npm-debug.log*
+mobile/yarn-debug.log*
+mobile/yarn-error.log*
+mobile/package-lock.json
+mobile/dist/
+mobile/.expo/
+mobile/.expo-shared/
+mobile/web-build/
+
+# Metro / RN cache
+mobile/.expo-dev/
+mobile/.expo-packager-cache/
+mobile/.expo-cache/
+
+# Android / iOS build outputs
+mobile/android/app/build/
+mobile/android/.gradle/
+mobile/android/.idea/
+mobile/android/local.properties
+mobile/android/captures/
+mobile/ios/build/
+mobile/ios/Pods/
+*.apk
+*.aab
+*.ipa
+
+# ------------------------------
+# Backend (Spring Boot / Java)
+# ------------------------------
+backend/target/
+backend/.gradle/
+backend/build/
+backend/out/
+backend/*.log
+
+# Maven backup files
+backend/pom.xml.tag
+backend/pom.xml.releaseBackup
+backend/pom.xml.versionsBackup
+backend/pom.xml.next
+backend/release.properties
+backend/dependency-reduced-pom.xml
+backend/buildNumber.properties
+
+# Keep Gradle wrapper jar
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# ------------------------------
+# Docker
+# ------------------------------
+docker-compose.override.yml
+*.env.docker
+.docker/
+docker-data/
