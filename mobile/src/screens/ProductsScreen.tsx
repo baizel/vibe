@@ -1,22 +1,37 @@
-// src/screens/ProductsScreen.tsx - Products Listing
-import React, { useEffect, useState } from "react";
+// src/screens/ProductsScreen.tsx - Products Listing with Material Paper UI
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Image,
   SafeAreaView,
-  TextInput,
   Alert,
   Platform,
   Dimensions,
+  Animated,
+  TouchableOpacity,
+  Easing,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Card,
+  Text,
+  Searchbar,
+  Chip,
+  Button,
+  IconButton,
+  ActivityIndicator,
+  Surface,
+  Divider,
+} from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 import { colors, commonStyles, productStyles } from "../styles/globalStyles";
 import { productAPI } from "../services/api";
+import { useResponsive } from "../hooks/useResponsive";
+import { wp, hp, spacing, responsiveStyles } from "../utils/responsive";
+import { addToCart, updateQuantity } from "../store/cartSlice";
+import { RootState } from "../store/store";
 
 interface Product {
   id: string;
@@ -28,6 +43,192 @@ interface Product {
   unit: string;
 }
 
+// Animated Product Quantity Control Component for ProductsScreen
+const ProductQuantityControl = ({ 
+  product, 
+  quantity, 
+  onIncrease, 
+  onDecrease,
+  isDesktop 
+}: {
+  product: Product;
+  quantity: number;
+  onIncrease: () => void;
+  onDecrease: () => void;
+  isDesktop?: boolean;
+}) => {
+  const containerWidth = useRef(new Animated.Value(isDesktop ? 32 : 28)).current; // Start with + button width
+  const minusOpacity = useRef(new Animated.Value(0)).current;
+  const minusTranslateX = useRef(new Animated.Value(50)).current; // Start from outside container
+  const quantityOpacity = useRef(new Animated.Value(0)).current;
+  const quantityTranslateX = useRef(new Animated.Value(25)).current; // Start from center of + button
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  
+  const buttonSize = isDesktop ? 32 : 28;
+  const expandedWidth = isDesktop ? 110 : 98;
+  
+  useEffect(() => {
+    if (quantity > 0) {
+      // Animate to expanded state
+      Animated.parallel([
+        // Expand container
+        Animated.spring(containerWidth, {
+          toValue: expandedWidth,
+          useNativeDriver: false,
+          tension: 100,
+          friction: 8,
+        }),
+        // Slide minus button from right to left with smooth easing curve
+        Animated.timing(minusTranslateX, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        // Fade in minus button
+        Animated.timing(minusOpacity, {
+          toValue: 1,
+          duration: 350,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        // Slide quantity number from right to center with smooth easing curve
+        Animated.timing(quantityTranslateX, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        // Fade in quantity
+        Animated.timing(quantityOpacity, {
+          toValue: 1,
+          duration: 350,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Animate to collapsed state
+      Animated.parallel([
+        // Collapse container
+        Animated.spring(containerWidth, {
+          toValue: buttonSize,
+          useNativeDriver: false,
+          tension: 120,
+          friction: 9,
+        }),
+        // Slide minus button to right
+        Animated.spring(minusTranslateX, {
+          toValue: 50,
+          useNativeDriver: true,
+          tension: 120,
+          friction: 8,
+        }),
+        // Fade out minus button
+        Animated.timing(minusOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        // Slide quantity number to right
+        Animated.spring(quantityTranslateX, {
+          toValue: 25,
+          useNativeDriver: true,
+          tension: 120,
+          friction: 8,
+        }),
+        // Fade out quantity
+        Animated.timing(quantityOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [quantity, buttonSize, expandedWidth]);
+
+  const handleAddPress = () => {
+    // Quick press feedback
+    Animated.sequence([
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        tension: 400,
+        friction: 10,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 400,
+        friction: 10,
+      }),
+    ]).start();
+    
+    onIncrease();
+  };
+
+  return (
+    <View style={styles.quantityContainer}>
+      {/* Fixed container that doesn't affect price layout */}
+      <Animated.View style={[
+        styles.quantityControlsFixed,
+        { 
+          width: containerWidth,
+          height: buttonSize,
+          transform: [{ scale: scaleAnim }],
+        }
+      ]}>
+        {/* Minus button - slides in from right */}
+        <Animated.View style={[
+          styles.minusButtonContainer,
+          {
+            opacity: minusOpacity,
+            transform: [{ translateX: minusTranslateX }],
+          }
+        ]}>
+          <TouchableOpacity 
+            style={[styles.quantityButtonAnimated, { 
+              backgroundColor: "#E74C3C",
+              width: buttonSize,
+              height: buttonSize,
+              borderRadius: buttonSize / 2,
+            }]}
+            onPress={onDecrease}
+          >
+            <Text style={[styles.quantityButtonText, { fontSize: isDesktop ? 16 : 14 }]}>−</Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Quantity text - slides in from right */}
+        <Animated.Text style={[
+          styles.quantityTextFixed,
+          {
+            opacity: quantityOpacity,
+            transform: [{ translateX: quantityTranslateX }],
+            fontSize: isDesktop ? 16 : 14,
+            top: isDesktop ? 8 : 7,
+            left: isDesktop ? 40 : 35,
+          }
+        ]}>
+          {quantity}
+        </Animated.Text>
+
+        {/* Plus button - always in the same position */}
+        <TouchableOpacity 
+          style={[styles.quantityButtonAnimated, styles.plusButton, {
+            width: buttonSize,
+            height: buttonSize,
+            borderRadius: buttonSize / 2,
+          }]}
+          onPress={handleAddPress}
+        >
+          <Text style={[styles.quantityButtonText, { fontSize: isDesktop ? 16 : 14 }]}>+</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+};
+
 const ProductsScreen: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -37,12 +238,14 @@ const ProductsScreen: React.FC = () => {
 
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const dispatch = useDispatch();
+  const { items: cartItems } = useSelector((state: RootState) => state.cart);
   const initialCategory = route.params?.category || "all";
   
-  const { width } = Dimensions.get('window');
+  const { dimensions, isTablet, isDesktop, getResponsiveColumns, getItemWidth } = useResponsive();
   const isWeb = Platform.OS === 'web';
-  const isTablet = width >= 768;
-  const isDesktop = width >= 1024;
+  const columns = getResponsiveColumns();
+  const itemWidth = getItemWidth(columns);
 
   useEffect(() => {
     loadProducts();
@@ -52,6 +255,12 @@ const ProductsScreen: React.FC = () => {
   useEffect(() => {
     filterProducts();
   }, [products, searchQuery, selectedCategory]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      loadCategories();
+    }
+  }, [products]);
 
   const loadProducts = async () => {
     try {
@@ -90,14 +299,58 @@ const ProductsScreen: React.FC = () => {
   };
 
   const navigateToProduct = (product: Product) => {
-    navigation.navigate("ProductDetail", { product });
+    navigation.navigate("ProductDetail", { 
+      productId: product.id
+    });
   };
 
-  const [categories, setCategories] = useState(["all"]);
+  const getCartQuantity = (productId: string) => {
+    const cartItem = cartItems.find(item => item.product.id === productId);
+    return cartItem ? cartItem.quantity : 0;
+  };
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  const handleAddToCart = (product: Product) => {
+    const currentQuantity = getCartQuantity(product.id);
+    
+    if (currentQuantity > 0) {
+      // Update existing item
+      dispatch(updateQuantity({ 
+        productId: product.id, 
+        quantity: currentQuantity + 1 
+      }));
+    } else {
+      // Add new item
+      dispatch(addToCart({ 
+        product: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          imageUrl: product.imageUrl,
+          unit: product.unit,
+        }, 
+        quantity: 1 
+      }));
+    }
+    Alert.alert("Added to Cart", `${product.name} quantity: ${currentQuantity + 1}`);
+  };
+
+  const handleDecreaseQuantity = (product: Product) => {
+    const currentQuantity = getCartQuantity(product.id);
+    if (currentQuantity > 1) {
+      dispatch(updateQuantity({ 
+        productId: product.id, 
+        quantity: currentQuantity - 1 
+      }));
+    } else if (currentQuantity === 1) {
+      // Remove from cart
+      dispatch(updateQuantity({ 
+        productId: product.id, 
+        quantity: 0 
+      }));
+    }
+  };
+
+  const [categories, setCategories] = useState<string[]>([]);
 
   const loadCategories = async () => {
     try {
@@ -109,46 +362,104 @@ const ProductsScreen: React.FC = () => {
   };
 
   // Calculate responsive grid
-  const getNumColumns = () => {
-    if (isDesktop) return 4;
-    if (isTablet) return 3;
-    return 2;
-  };
+  const getNumColumns = () => columns;
 
   const getProductWidth = () => {
-    const numColumns = getNumColumns();
-    const padding = isWeb ? 40 : 20;
-    const margin = 10;
-    return `${(100 / numColumns) - (margin * 2 / numColumns)}%`;
+    if (isWeb) {
+      return itemWidth - (spacing.sm * 2);
+    }
+    return `${(100 / columns) - 2}%`;
   };
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <TouchableOpacity
-      style={[
-        productStyles.productCard,
-        isWeb && { width: getProductWidth() },
-        isDesktop && productStyles.productCardDesktop
-      ]}
-      onPress={() => navigateToProduct(item)}
-    >
-      <Image source={{ uri: item.imageUrl }} style={productStyles.productImage} />
-      <View style={productStyles.productInfo}>
-        <Text style={productStyles.productName} numberOfLines={2}>
-          {item.name}
-        </Text>
-        <Text style={productStyles.productDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
-        <View style={productStyles.productFooter}>
-          <Text style={productStyles.productPrice}>
-            £{item.price.toFixed(2)}/{item.unit}
+  const renderProduct = ({ item }: { item: Product }) => {
+    const cardWidth = isWeb ? itemWidth - spacing.sm : undefined;
+    
+    return (
+      <Card
+        style={[
+          styles.productCard,
+          {
+            width: cardWidth,
+            marginHorizontal: isWeb ? spacing.sm / 2 : '1%',
+            marginBottom: spacing.md,
+          },
+          isDesktop && styles.productCardDesktop
+        ]}
+        onPress={() => navigateToProduct(item)}
+        mode="elevated"
+      >
+        <Image 
+          source={{ uri: item.imageUrl }} 
+          style={[
+            styles.productImage,
+            {
+              height: isTablet ? 180 : isDesktop ? 200 : 140
+            }
+          ]} 
+        />
+        <Card.Content style={{ padding: spacing.md }}>
+          <Text 
+            variant={isDesktop ? "titleLarge" : "titleMedium"} 
+            numberOfLines={2} 
+            style={styles.productName}
+          >
+            {item.name}
           </Text>
-          <TouchableOpacity style={productStyles.addButton}>
-            <Ionicons name="add" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
+          <Text 
+            variant={isDesktop ? "bodyMedium" : "bodySmall"} 
+            numberOfLines={2} 
+            style={styles.productDescription}
+          >
+            {item.description}
+          </Text>
+          <View style={styles.productFooterFixed}>
+            <Text 
+              variant={isDesktop ? "titleMedium" : "titleSmall"} 
+              style={styles.productPrice}
+            >
+              £{item.price.toFixed(2)}/{item.unit}
+            </Text>
+          </View>
+          <ProductQuantityControl 
+            product={item}
+            quantity={getCartQuantity(item.id)}
+            onIncrease={() => handleAddToCart(item)}
+            onDecrease={() => handleDecreaseQuantity(item)}
+            isDesktop={isDesktop}
+          />
+        </Card.Content>
+      </Card>
+    );
+  };
+
+  const renderEmptyState = () => (
+    <Surface style={styles.emptyStateContainer} elevation={1}>
+      <IconButton
+        icon="package-variant-closed"
+        size={64}
+        iconColor="#666"
+      />
+      <Text variant="headlineSmall" style={styles.emptyStateTitle}>
+        No Products Found
+      </Text>
+      <Text variant="bodyMedium" style={styles.emptyStateMessage}>
+        {searchQuery || selectedCategory !== 'all'
+          ? 'Try adjusting your search or filters'
+          : 'Products will appear here when they are available'}
+      </Text>
+      {(searchQuery || selectedCategory !== 'all') && (
+        <Button
+          mode="outlined"
+          onPress={() => {
+            setSearchQuery('');
+            setSelectedCategory('all');
+          }}
+          style={styles.clearFiltersButton}
+        >
+          Clear Filters
+        </Button>
+      )}
+    </Surface>
   );
 
   const containerStyle = [
@@ -157,8 +468,15 @@ const ProductsScreen: React.FC = () => {
   ];
 
   const contentContainerStyle = [
-    commonStyles.webContent,
-    isDesktop && commonStyles.desktopContent
+    isWeb ? {
+      width: '100%',
+      maxWidth: '100vw',
+      paddingHorizontal: 0,
+      flex: 1, // Allow container to expand
+    } : commonStyles.webContent,
+    isDesktop && {
+      paddingTop: spacing.lg,
+    }
   ];
 
   return (
@@ -166,70 +484,105 @@ const ProductsScreen: React.FC = () => {
       <View style={contentContainerStyle}>
         {/* Header - hidden on web since we have navigation header */}
         {!isWeb && (
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Products</Text>
-          </View>
+          <Surface style={styles.header} elevation={1}>
+            <Text variant="headlineMedium" style={styles.headerTitle}>Products</Text>
+          </Surface>
         )}
 
         {/* Search and Filter Section */}
-        <View style={[styles.searchFilterSection, isDesktop && styles.searchFilterSectionDesktop]}>
+        <Surface style={[
+          styles.searchFilterSection,
+          {
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.lg,
+            flexDirection: isDesktop ? 'row' : 'column',
+            alignItems: isDesktop ? 'flex-start' : 'stretch',
+            gap: isDesktop ? spacing.lg : spacing.md,
+          }
+        ]} elevation={0}>
           {/* Search Bar */}
-          <View style={[styles.searchContainer, isDesktop && styles.searchContainerDesktop]}>
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color="#666"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search products..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+          <Searchbar
+            placeholder="Search products..."
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={[
+              styles.searchbar,
+              {
+                flex: isDesktop ? 1 : undefined,
+                marginBottom: isDesktop ? 0 : spacing.md,
+                fontSize: isDesktop ? 18 : 16,
+              }
+            ]}
+          />
 
           {/* Category Filter */}
-          <View style={[styles.categoryFilter, isDesktop && styles.categoryFilterDesktop]}>
+          <View style={[
+            styles.categoryFilter,
+            {
+              minWidth: isDesktop ? 300 : undefined,
+            }
+          ]}>
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
               data={categories}
               keyExtractor={(item) => item}
+              contentContainerStyle={{
+                paddingVertical: spacing.xs,
+                gap: spacing.xs,
+              }}
+              ItemSeparatorComponent={() => <View style={{ width: spacing.xs }} />}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.categoryFilterButton,
-                    selectedCategory === item && styles.categoryFilterButtonActive,
-                  ]}
+                <Chip
+                  mode={selectedCategory === item ? 'flat' : 'outlined'}
+                  selected={selectedCategory === item}
                   onPress={() => setSelectedCategory(item)}
+                  style={{
+                    marginVertical: spacing.xs / 2,
+                  }}
+                  textStyle={{
+                    fontSize: isDesktop ? 16 : 14,
+                    color: selectedCategory === item ? '#2ECC71' : '#666',
+                    fontWeight: selectedCategory === item ? '600' : 'normal',
+                  }}
                 >
-                  <Text
-                    style={[
-                      styles.categoryFilterText,
-                      selectedCategory === item && styles.categoryFilterTextActive,
-                    ]}
-                  >
-                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                  </Text>
-                </TouchableOpacity>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </Chip>
               )}
             />
           </View>
-        </View>
+        </Surface>
 
         {/* Products List */}
-        <FlatList
-          data={filteredProducts}
-          renderItem={renderProduct}
-          keyExtractor={(item) => item.id}
-          numColumns={getNumColumns()}
-          key={getNumColumns()} // Force re-render when columns change
-          contentContainerStyle={[styles.productsList, isDesktop && styles.productsListDesktop]}
-          refreshing={isLoading}
-          onRefresh={loadProducts}
-          showsVerticalScrollIndicator={false}
-        />
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator animating={true} size="large" style={styles.loader} />
+            <Text variant="bodyLarge" style={styles.loadingText}>Loading products...</Text>
+          </View>
+        ) : filteredProducts.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <FlatList
+            data={filteredProducts}
+            renderItem={renderProduct}
+            keyExtractor={(item) => item.id}
+            numColumns={getNumColumns()} // Use same logic for both web and mobile
+            key={`${getNumColumns()}-${dimensions.width}`} // Force re-render when columns or width changes
+            contentContainerStyle={[
+              styles.productsList,
+              {
+                paddingHorizontal: spacing.md,
+                paddingTop: spacing.md,
+                paddingBottom: spacing.xl,
+                // Remove conflicting flexDirection/flexWrap for web
+              }
+            ]}
+            refreshing={isLoading}
+            onRefresh={loadProducts}
+            showsVerticalScrollIndicator={false}
+            style={{ flex: 1 }} // Ensure FlatList can expand to take available space
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -238,7 +591,7 @@ const ProductsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
   },
   webContainer: {
     backgroundColor: "#f8f9fa",
@@ -255,151 +608,190 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   desktopContent: {
-    paddingHorizontal: 40,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
-    paddingTop: 10,
+    backgroundColor: "#fff",
+    marginBottom: spacing.xs,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    color: "#1a1a1a",
   },
   searchFilterSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  searchFilterSectionDesktop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 40,
-    paddingHorizontal: 0,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#fff",
-    marginBottom: 15,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    borderColor: "#e1e8ed",
+    marginBottom: spacing.xs,
   },
-  searchContainerDesktop: {
-    flex: 1,
-    marginBottom: 0,
-    height: 48,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 45,
-    fontSize: 16,
+  searchbar: {
+    elevation: 2,
   },
   categoryFilter: {
-    marginBottom: 15,
-  },
-  categoryFilterDesktop: {
     marginBottom: 0,
   },
-  categoryFilterButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F8F9FA",
-    marginRight: 10,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
   },
-  categoryFilterButtonActive: {
-    backgroundColor: "#2ECC71",
+  loader: {
+    marginBottom: spacing.md,
   },
-  categoryFilterText: {
-    fontSize: 14,
-    fontWeight: "500",
+  loadingText: {
     color: "#666",
   },
-  categoryFilterTextActive: {
-    color: "white",
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    margin: spacing.lg,
+    backgroundColor: '#fff',
+    borderRadius: spacing.md,
+  },
+  emptyStateTitle: {
+    color: "#333",
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  emptyStateMessage: {
+    color: "#666",
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    lineHeight: 22,
+  },
+  clearFiltersButton: {
+    marginTop: spacing.sm,
   },
   productsList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  productsListDesktop: {
-    paddingHorizontal: 0,
-    paddingBottom: 40,
+    // Responsive padding handled inline
   },
   productCard: {
-    width: "48%",
     backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 15,
-    marginHorizontal: "1%",
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e1e8ed",
     ...Platform.select({
       web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         cursor: 'pointer',
+        transition: 'all 0.2s ease',
       }
     }),
   },
   productCardDesktop: {
-    marginHorizontal: 5,
-    marginBottom: 20,
     ...Platform.select({
       web: {
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
         }
       }
     }),
   },
   productImage: {
     width: "100%",
-    height: 120,
     backgroundColor: "#E0E0E0",
-  },
-  productInfo: {
-    padding: 12,
+    resizeMode: 'cover',
   },
   productName: {
-    fontSize: 14,
+    color: "#1a1a1a",
+    marginBottom: spacing.xs,
     fontWeight: "600",
-    marginBottom: 4,
   },
   productDescription: {
-    fontSize: 12,
     color: "#666",
-    marginBottom: 8,
+    marginBottom: spacing.md,
+    lineHeight: 20,
   },
   productPrice: {
-    fontSize: 16,
-    fontWeight: "bold",
     color: "#2ECC71",
+    fontWeight: "700",
   },
   productFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
-  addButton: {
-    width: 32,
-    height: 32,
+  productFooterFixed: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    // Price stays in fixed position, no space-between layout
+  },
+  quantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  quantityButton: {
+    margin: 0,
+    width: 28,
+    height: 28,
+  },
+  quantityText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#2ECC71",
+    marginHorizontal: 6,
+    minWidth: 20,
+    textAlign: "center",
+  },
+  // New animated quantity control styles
+  quantityContainer: {
+    position: "absolute",
+    bottom: spacing.sm,
+    right: spacing.md,
+    height: 32, // Fixed height to prevent layout shifts
+  },
+  quantityControlsFixed: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.98)",
     borderRadius: 16,
-    backgroundColor: "#2ECC71",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    overflow: "hidden", // Hide elements sliding outside
+  },
+  minusButtonContainer: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+  },
+  quantityButtonAnimated: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  plusButton: {
+    backgroundColor: "#2ECC71",
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  quantityTextFixed: {
+    position: "absolute",
+    fontWeight: "bold",
+    color: "#2ECC71",
+    width: 24,
+    textAlign: "center",
+  },
+  quantityButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 

@@ -1,5 +1,5 @@
 // src/screens/ProductDetailScreen.tsx - Single Product View
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../store/cartSlice";
+import { productAPI } from "../services/api";
 
 interface Product {
   id: string;
@@ -27,15 +28,48 @@ interface Product {
 
 const ProductDetailScreen: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const dispatch = useDispatch();
-  const { product }: { product: Product } = route.params;
+  
+  useEffect(() => {
+    const loadProductData = async () => {
+      const { productId } = route.params || {};
+      
+      if (productId) {
+        // Always fetch from backend for consistent behavior
+        try {
+          const productData = await productAPI.getProduct(productId);
+          
+          if (productData) {
+            setProduct(productData);
+          } else {
+            Alert.alert("Error", "Product not found");
+            navigation.goBack();
+          }
+        } catch (error) {
+          console.error("Failed to load product details:", error);
+          Alert.alert("Error", "Failed to load product details");
+          navigation.goBack();
+        }
+        setLoading(false);
+      } else {
+        Alert.alert("Error", "Invalid product");
+        navigation.goBack();
+      }
+    };
+    
+    loadProductData();
+  }, [route.params, navigation]);
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
   const decreaseQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   const addToCartHandler = () => {
+    if (!product) return;
+    
     dispatch(
       addToCart({
         product,
@@ -44,12 +78,40 @@ const ProductDetailScreen: React.FC = () => {
     );
     Alert.alert("Success", "Product added to cart!");
   };
+  
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text>Loading product...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
+  if (!product) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text>Product not found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => {
+          // Check if we can go back in navigation stack
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            // Direct access - navigate to products page
+            navigation.navigate('CustomerTabs', { screen: 'Products' });
+          }
+        }}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Product Details</Text>
@@ -60,15 +122,15 @@ const ProductDetailScreen: React.FC = () => {
 
       <ScrollView style={styles.content}>
         {/* Product Image */}
-        <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+        <Image source={{ uri: product?.imageUrl || '' }} style={styles.productImage} />
 
         {/* Product Info */}
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{product.name}</Text>
+          <Text style={styles.productName}>{product?.name || ''}</Text>
           <Text style={styles.productPrice}>
-            £{product.price.toFixed(2)} per {product.unit}
+            £{product?.price?.toFixed(2) || '0.00'} per {product?.unit || ''}
           </Text>
-          <Text style={styles.productDescription}>{product.description}</Text>
+          <Text style={styles.productDescription}>{product?.description || ''}</Text>
 
           {/* Quantity Selector */}
           <View style={styles.quantitySection}>
@@ -93,7 +155,7 @@ const ProductDetailScreen: React.FC = () => {
           {/* Total Price */}
           <View style={styles.totalSection}>
             <Text style={styles.totalText}>
-              Total: £{(product.price * quantity).toFixed(2)}
+              Total: £{((product?.price || 0) * quantity).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -215,6 +277,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

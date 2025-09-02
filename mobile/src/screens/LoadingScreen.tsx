@@ -13,7 +13,7 @@ const LoadingScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <ActivityIndicator size="large" color="#2ECC71" />
-        <Text style={styles.loadingText}>Loading FreshTrio...</Text>
+        <Text style={styles.loadingText}>Loading YorkMart...</Text>
         <Text style={styles.subtitle}>Fresh meat delivery</Text>
       </View>
     </SafeAreaView>

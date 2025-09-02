@@ -42,50 +42,46 @@ const OrdersScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 20,
     paddingTop: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#fff',
+    marginBottom: 8,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    color: '#1a1a1a',
   },
   content: {
     flex: 1,
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 100,
+    padding: 40,
+    margin: 20,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    minHeight: 400,
+  },
+  emptyIcon: {
+    backgroundColor: 'transparent',
+    marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 12,
+    color: '#1a1a1a',
+    textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 32,
+    lineHeight: 24,
   },
   shopButton: {
-    backgroundColor: '#2ECC71',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
-  },
-  shopButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    paddingHorizontal: 8,
   },
 });
 

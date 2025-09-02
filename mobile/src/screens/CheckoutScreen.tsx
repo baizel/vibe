@@ -1,12 +1,15 @@
 import React from "react";
 import {
   View,
-  Text,
   SafeAreaView,
-  TouchableOpacity,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Text,
+  Button,
+  Surface,
+  IconButton,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { colors, commonStyles } from "../styles/globalStyles";
 
@@ -30,47 +33,86 @@ const CheckoutScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={commonStyles.safeArea}>
-      <View style={[commonStyles.centerContent, { backgroundColor: colors.background }]}>
-        {/* Coming Soon Icon */}
-        <View style={[commonStyles.centered, { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.primary + '20', marginBottom: 32 }]}>
-          <Ionicons name="card" size={50} color={colors.primary} />
-        </View>
-        
-        {/* Title */}
-        <Text style={[commonStyles.title, { textAlign: 'center', marginBottom: 16 }]}>
-          Checkout Coming Soon
-        </Text>
-        
-        {/* Subtitle */}
-        <Text style={[commonStyles.bodyText, { textAlign: 'center', marginBottom: 40, paddingHorizontal: 40, color: colors.gray }]}>
-          Order checkout, payment processing, and delivery features are currently in development.
-        </Text>
-        
-        {/* Action Buttons */}
-        <View style={{ width: '100%', paddingHorizontal: 40 }}>
-          <TouchableOpacity 
-            style={[commonStyles.primaryButton, { flexDirection: 'row', alignItems: 'center', marginBottom: 16 }]} 
-            onPress={() => navigation.navigate('Products')}
-          >
-            <Ionicons name="storefront" size={24} color={colors.white} />
-            <Text style={[commonStyles.primaryButtonText, { marginLeft: 8 }]}>
-              Continue Shopping
-            </Text>
-          </TouchableOpacity>
+      <View style={[commonStyles.centerContent, { backgroundColor: '#f5f5f5' }]}>
+        <Surface style={comingSoonStyles.container} elevation={2}>
+          {/* Coming Soon Icon */}
+          <IconButton
+            icon="credit-card"
+            size={64}
+            iconColor={colors.primary}
+            style={comingSoonStyles.icon}
+          />
           
-          <TouchableOpacity 
-            style={[commonStyles.secondaryButton, { flexDirection: 'row', alignItems: 'center' }]} 
-            onPress={handleGoBack}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.primary} />
-            <Text style={[commonStyles.secondaryButtonText, { marginLeft: 8 }]}>
+          {/* Title */}
+          <Text variant="headlineMedium" style={comingSoonStyles.title}>
+            Checkout Coming Soon
+          </Text>
+          
+          {/* Subtitle */}
+          <Text variant="bodyLarge" style={comingSoonStyles.subtitle}>
+            Order checkout, payment processing, and delivery features are currently in development.
+          </Text>
+          
+          {/* Action Buttons */}
+          <View style={comingSoonStyles.buttonContainer}>
+            <Button 
+              mode="contained"
+              onPress={() => navigation.navigate('Products')}
+              icon="storefront"
+              style={comingSoonStyles.primaryButton}
+              buttonColor={colors.primary}
+            >
+              Continue Shopping
+            </Button>
+            
+            <Button 
+              mode="outlined"
+              onPress={handleGoBack}
+              icon="arrow-left"
+              style={comingSoonStyles.secondaryButton}
+            >
               Go Back
-            </Text>
-          </TouchableOpacity>
-        </View>
+            </Button>
+          </View>
+        </Surface>
       </View>
     </SafeAreaView>
   );
+};
+
+const comingSoonStyles = {
+  container: {
+    padding: 40,
+    margin: 20,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center' as const,
+  },
+  icon: {
+    backgroundColor: colors.primary + '20',
+    marginBottom: 24,
+  },
+  title: {
+    textAlign: 'center' as const,
+    marginBottom: 16,
+    color: '#1a1a1a',
+  },
+  subtitle: {
+    textAlign: 'center' as const,
+    marginBottom: 32,
+    color: '#666',
+    lineHeight: 24,
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: 12,
+  },
+  primaryButton: {
+    marginBottom: 8,
+  },
+  secondaryButton: {
+    borderColor: colors.primary,
+  },
 };
 
 export default CheckoutScreen;
