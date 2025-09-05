@@ -44,6 +44,7 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET:}
 
 server:
+  address: 0.0.0.0
   port: 8080
   servlet:
     context-path: /
@@ -65,6 +66,10 @@ app:
 
   firebase:
     key-path: ${FCM_KEY_PATH}
+    project-id: ${FIREBASE_PROJECT_ID:fresh-c7323}
+    client-email: ${FIREBASE_CLIENT_EMAIL:}
+    private-key: ${FIREBASE_PRIVATE_KEY:}
+    private-key-id: ${FIREBASE_PRIVATE_KEY_ID:}
 
   upload:
     dir: ${UPLOAD_DIR:/tmp/uploads}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>597482260340-jscrqq6ie23bb6esomsq610bvcnia7ig.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.597482260340-jscrqq6ie23bb6esomsq610bvcnia7ig</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>597482260340-n0s66bhgma69mj3td0p0rhlled71aqli.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDpBPzkfe35cmQmnSzy8oOuIlX3Vw6hN0Y</string>
+	<key>GCM_SENDER_ID</key>
+	<string>597482260340</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.freshtrio.mobile</string>
+	<key>PROJECT_ID</key>
+	<string>fresh-c7323</string>
+	<key>STORAGE_BUCKET</key>
+	<string>fresh-c7323.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:597482260340:ios:1f9008170e6dbb4b520e21</string>
+</dict>
+</plist>

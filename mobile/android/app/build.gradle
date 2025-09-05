@@ -109,9 +109,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.freshtrio"
+    namespace "com.yorkmart"
     defaultConfig {
-        applicationId "com.freshtrio"
+        applicationId "com.yorkmart"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

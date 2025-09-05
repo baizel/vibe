@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>YorkMart</title>
+    
+    <!-- Security headers -->
+    <meta http-equiv="Referrer-Policy" content="no-referrer-when-downgrade" />
+    
+    <style>
+        /**
+         * Extend the react-native-web reset:
+         * https://github.com/necolas/react-native-web/blob/master/packages/react-native-web/src/exports/StyleSheet/initialRules.js
+         */
+        html, body, #root {
+            width: 100%;
+            /* To smooth any scrolling behavior */
+            -webkit-overflow-scrolling: touch;
+            margin: 0px;
+            padding: 0px;
+            /* Allows content to fill the viewport and go beyond the bottom */
+            min-height: 100%;
+        }
+        #root {
+            flex-shrink: 0;
+            flex-basis: auto;
+            flex-grow: 1;
+            display: flex;
+            flex: 1;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            /* Prevent text size adjust after orientation change https://developer.mozilla.org/en-US/docs/Web/CSS/text-size-adjust */
+            -webkit-text-size-adjust: 100%;
+            height: 100%;
+        }
+        
+        body {
+            display: flex;
+            /* Allows you to scroll below the viewport; default value is visible */
+            overflow-y: auto;
+            overscroll-behavior-y: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -ms-overflow-style: scrollbar;
+        }
+    </style>
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+</body>
+</html>

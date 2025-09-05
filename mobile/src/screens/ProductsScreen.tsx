@@ -12,6 +12,8 @@ import {
   Animated,
   TouchableOpacity,
   Easing,
+  ScrollView,
+  RefreshControl,
 } from "react-native";
 import {
   Card,
@@ -23,6 +25,7 @@ import {
   ActivityIndicator,
   Surface,
   Divider,
+  FAB,
 } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -43,189 +46,100 @@ interface Product {
   unit: string;
 }
 
-// Animated Product Quantity Control Component for ProductsScreen
-const ProductQuantityControl = ({ 
+// Animated FAB Control Component - Deliveroo style
+const AnimatedFABControl = ({ 
   product, 
   quantity, 
   onIncrease, 
-  onDecrease,
-  isDesktop 
+  onDecrease 
 }: {
   product: Product;
   quantity: number;
   onIncrease: () => void;
   onDecrease: () => void;
-  isDesktop?: boolean;
 }) => {
-  const containerWidth = useRef(new Animated.Value(isDesktop ? 32 : 28)).current; // Start with + button width
-  const minusOpacity = useRef(new Animated.Value(0)).current;
-  const minusTranslateX = useRef(new Animated.Value(50)).current; // Start from outside container
+  const expandAnim = useRef(new Animated.Value(0)).current; // 0 = collapsed, 1 = expanded
   const quantityOpacity = useRef(new Animated.Value(0)).current;
-  const quantityTranslateX = useRef(new Animated.Value(25)).current; // Start from center of + button
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  
-  const buttonSize = isDesktop ? 32 : 28;
-  const expandedWidth = isDesktop ? 110 : 98;
-  
+
   useEffect(() => {
     if (quantity > 0) {
-      // Animate to expanded state
+      // Expand to show full controls
       Animated.parallel([
-        // Expand container
-        Animated.spring(containerWidth, {
-          toValue: expandedWidth,
-          useNativeDriver: false,
-          tension: 100,
+        Animated.spring(expandAnim, {
+          toValue: 1,
+          useNativeDriver: false, // We need this for width animation
+          tension: 80,
           friction: 8,
         }),
-        // Slide minus button from right to left with smooth easing curve
-        Animated.timing(minusTranslateX, {
-          toValue: 0,
-          duration: 400,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        // Fade in minus button
-        Animated.timing(minusOpacity, {
-          toValue: 1,
-          duration: 350,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        // Slide quantity number from right to center with smooth easing curve
-        Animated.timing(quantityTranslateX, {
-          toValue: 0,
-          duration: 400,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        // Fade in quantity
         Animated.timing(quantityOpacity, {
           toValue: 1,
-          duration: 350,
-          easing: Easing.out(Easing.quad),
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
     } else {
-      // Animate to collapsed state
+      // Collapse to just plus button
       Animated.parallel([
-        // Collapse container
-        Animated.spring(containerWidth, {
-          toValue: buttonSize,
-          useNativeDriver: false,
-          tension: 120,
-          friction: 9,
-        }),
-        // Slide minus button to right
-        Animated.spring(minusTranslateX, {
-          toValue: 50,
-          useNativeDriver: true,
-          tension: 120,
-          friction: 8,
-        }),
-        // Fade out minus button
-        Animated.timing(minusOpacity, {
+        Animated.spring(expandAnim, {
           toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        // Slide quantity number to right
-        Animated.spring(quantityTranslateX, {
-          toValue: 25,
-          useNativeDriver: true,
-          tension: 120,
+          useNativeDriver: false,
+          tension: 80,
           friction: 8,
         }),
-        // Fade out quantity
         Animated.timing(quantityOpacity, {
           toValue: 0,
-          duration: 200,
+          duration: 150,
           useNativeDriver: true,
         }),
       ]).start();
     }
-  }, [quantity, buttonSize, expandedWidth]);
+  }, [quantity]);
 
   const handleAddPress = () => {
-    // Quick press feedback
-    Animated.sequence([
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        useNativeDriver: true,
-        tension: 400,
-        friction: 10,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 400,
-        friction: 10,
-      }),
-    ]).start();
-    
     onIncrease();
   };
 
-  return (
-    <View style={styles.quantityContainer}>
-      {/* Fixed container that doesn't affect price layout */}
-      <Animated.View style={[
-        styles.quantityControlsFixed,
-        { 
-          width: containerWidth,
-          height: buttonSize,
-          transform: [{ scale: scaleAnim }],
-        }
-      ]}>
-        {/* Minus button - slides in from right */}
-        <Animated.View style={[
-          styles.minusButtonContainer,
-          {
-            opacity: minusOpacity,
-            transform: [{ translateX: minusTranslateX }],
-          }
-        ]}>
-          <TouchableOpacity 
-            style={[styles.quantityButtonAnimated, { 
-              backgroundColor: "#E74C3C",
-              width: buttonSize,
-              height: buttonSize,
-              borderRadius: buttonSize / 2,
-            }]}
-            onPress={onDecrease}
-          >
-            <Text style={[styles.quantityButtonText, { fontSize: isDesktop ? 16 : 14 }]}>−</Text>
-          </TouchableOpacity>
-        </Animated.View>
+  const fabWidth = expandAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [40, 120], // Small FAB width (40) to expanded width (120)
+  });
 
-        {/* Quantity text - slides in from right */}
-        <Animated.Text style={[
-          styles.quantityTextFixed,
-          {
-            opacity: quantityOpacity,
-            transform: [{ translateX: quantityTranslateX }],
-            fontSize: isDesktop ? 16 : 14,
-            top: isDesktop ? 8 : 7,
-            left: isDesktop ? 40 : 35,
-          }
-        ]}>
-          {quantity}
-        </Animated.Text>
-
-        {/* Plus button - always in the same position */}
-        <TouchableOpacity 
-          style={[styles.quantityButtonAnimated, styles.plusButton, {
-            width: buttonSize,
-            height: buttonSize,
-            borderRadius: buttonSize / 2,
-          }]}
+  if (quantity === 0) {
+    return (
+      <View style={styles.fabContainer}>
+        <FAB
+          icon="plus"
+          size="small"
           onPress={handleAddPress}
-        >
-          <Text style={[styles.quantityButtonText, { fontSize: isDesktop ? 16 : 14 }]}>+</Text>
-        </TouchableOpacity>
+          style={styles.addFab}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <Animated.View 
+      style={[
+        styles.fabContainer,
+        styles.expandedFab,
+        { 
+          width: fabWidth,
+          height: 40, // Fixed height same as small FAB
+        }
+      ]}
+    >
+      <TouchableOpacity onPress={onDecrease} style={styles.fabButton}>
+        <Text style={styles.fabButtonText}>−</Text>
+      </TouchableOpacity>
+      
+      <Animated.View style={[styles.quantityContainer, { opacity: quantityOpacity }]}>
+        <Text style={styles.quantityText}>{quantity}</Text>
       </Animated.View>
-    </View>
+      
+      <TouchableOpacity onPress={handleAddPress} style={styles.fabButton}>
+        <Text style={styles.fabButtonText}>+</Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -264,12 +178,61 @@ const ProductsScreen: React.FC = () => {
 
   const loadProducts = async () => {
     try {
+      console.log('🔄 Loading products...');
       const response = await productAPI.getProducts();
+      console.log('📦 Raw API response:', response);
+      
       const productsData = response.content || response;
+      console.log('📋 Products data:', productsData);
+      console.log('🔢 Products count:', Array.isArray(productsData) ? productsData.length : 'Not an array');
+      
+      // Validate data format
+      if (!Array.isArray(productsData)) {
+        console.warn('⚠️ Products data is not an array:', typeof productsData);
+        setProducts([]);
+        return;
+      }
+      
       setProducts(productsData);
     } catch (error) {
-      console.error("Failed to load products:", error);
-      Alert.alert("Error", "Failed to load products");
+      console.error("❌ Failed to load products:", error);
+      
+      // On Android, if backend is not reachable, show mock data for testing
+      if (Platform.OS === 'android') {
+        console.log('📱 Android detected - using fallback mock data for testing');
+        const mockProducts: Product[] = [
+          {
+            id: '1',
+            name: 'Fresh Apples',
+            description: 'Crisp and sweet red apples',
+            price: 2.99,
+            imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&h=300&fit=crop',
+            category: 'fruits',
+            unit: 'kg'
+          },
+          {
+            id: '2', 
+            name: 'Organic Bananas',
+            description: 'Naturally ripened organic bananas',
+            price: 1.99,
+            imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop',
+            category: 'fruits',
+            unit: 'kg'
+          },
+          {
+            id: '3',
+            name: 'Fresh Milk',
+            description: 'Full fat fresh milk',
+            price: 1.49,
+            imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=300&fit=crop',
+            category: 'dairy',
+            unit: 'liter'
+          }
+        ];
+        setProducts(mockProducts);
+      } else {
+        Alert.alert("Error", "Failed to load products");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -331,7 +294,6 @@ const ProductsScreen: React.FC = () => {
         quantity: 1 
       }));
     }
-    Alert.alert("Added to Cart", `${product.name} quantity: ${currentQuantity + 1}`);
   };
 
   const handleDecreaseQuantity = (product: Product) => {
@@ -371,66 +333,111 @@ const ProductsScreen: React.FC = () => {
     return `${(100 / columns) - 2}%`;
   };
 
-  const renderProduct = ({ item }: { item: Product }) => {
-    const cardWidth = isWeb ? itemWidth - spacing.sm : undefined;
-    
+  // Mobile/Tablet: Deliveroo-style list item
+  const renderMobileProduct = ({ item, index }: { item: Product; index: number }) => {
     return (
-      <Card
-        style={[
-          styles.productCard,
-          {
-            width: cardWidth,
-            marginHorizontal: isWeb ? spacing.sm / 2 : '1%',
-            marginBottom: spacing.md,
-          },
-          isDesktop && styles.productCardDesktop
-        ]}
+      <TouchableOpacity 
+        style={styles.productItem}
         onPress={() => navigateToProduct(item)}
-        mode="elevated"
+        activeOpacity={0.7}
       >
-        <Image 
-          source={{ uri: item.imageUrl }} 
-          style={[
-            styles.productImage,
-            {
-              height: isTablet ? 180 : isDesktop ? 200 : 140
-            }
-          ]} 
-        />
-        <Card.Content style={{ padding: spacing.md }}>
-          <Text 
-            variant={isDesktop ? "titleLarge" : "titleMedium"} 
-            numberOfLines={2} 
-            style={styles.productName}
-          >
-            {item.name}
-          </Text>
-          <Text 
-            variant={isDesktop ? "bodyMedium" : "bodySmall"} 
-            numberOfLines={2} 
-            style={styles.productDescription}
-          >
-            {item.description}
-          </Text>
-          <View style={styles.productFooterFixed}>
+        <View style={styles.productContent}>
+          {/* Left side - Product info */}
+          <View style={styles.productInfo}>
+            <Text variant="titleMedium" style={styles.productName} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <Text variant="bodyMedium" style={styles.productDescription} numberOfLines={2}>
+              {item.description}
+            </Text>
+            <Text variant="titleSmall" style={styles.productPrice}>
+              £{item.price.toFixed(2)}/{item.unit}
+            </Text>
+          </View>
+          
+          {/* Right side - Image with floating FAB */}
+          <View style={styles.productImageContainer}>
+            <Image 
+              source={{ uri: item.imageUrl }}
+              style={styles.productImage}
+            />
+            
+            {/* Floating FAB positioned over image */}
+            <View style={styles.fabOverlay}>
+              <AnimatedFABControl
+                product={item}
+                quantity={getCartQuantity(item.id)}
+                onIncrease={() => handleAddToCart(item)}
+                onDecrease={() => handleDecreaseQuantity(item)}
+              />
+            </View>
+          </View>
+        </View>
+        
+        {/* Divider between items (except last item) */}
+        {index < filteredProducts.length - 1 && (
+          <Divider style={styles.itemDivider} />
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  // Desktop: Card-style grid item using Paper's standard layout
+  const renderDesktopProduct = ({ item }: { item: Product }) => {
+    return (
+      <Surface 
+        style={styles.desktopCardContainer}
+        elevation={2}
+        mode="flat"
+      >
+        <Card
+          style={styles.desktopCard}
+          onPress={() => navigateToProduct(item)}
+          mode="elevated"
+        >
+          <Card.Cover 
+            source={{ uri: item.imageUrl }}
+            style={styles.desktopCardImage}
+          />
+          
+          <Card.Actions style={styles.desktopCardActions}>
+            <AnimatedFABControl
+              product={item}
+              quantity={getCartQuantity(item.id)}
+              onIncrease={() => handleAddToCart(item)}
+              onDecrease={() => handleDecreaseQuantity(item)}
+            />
+          </Card.Actions>
+          
+          <Card.Content style={styles.desktopCardContent}>
             <Text 
-              variant={isDesktop ? "titleMedium" : "titleSmall"} 
+              variant="titleMedium"
+              numberOfLines={2} 
+              style={styles.productName}
+            >
+              {item.name}
+            </Text>
+            <Text 
+              variant="bodySmall"
+              numberOfLines={2} 
+              style={styles.productDescription}
+            >
+              {item.description}
+            </Text>
+            <Text 
+              variant="titleSmall"
               style={styles.productPrice}
             >
               £{item.price.toFixed(2)}/{item.unit}
             </Text>
-          </View>
-          <ProductQuantityControl 
-            product={item}
-            quantity={getCartQuantity(item.id)}
-            onIncrease={() => handleAddToCart(item)}
-            onDecrease={() => handleDecreaseQuantity(item)}
-            isDesktop={isDesktop}
-          />
-        </Card.Content>
-      </Card>
+          </Card.Content>
+        </Card>
+      </Surface>
     );
   };
+
+  // Choose render function based on viewport width
+  const renderProduct = isDesktop ? renderDesktopProduct : renderMobileProduct;
 
   const renderEmptyState = () => (
     <Surface style={styles.emptyStateContainer} elevation={1}>
@@ -463,20 +470,14 @@ const ProductsScreen: React.FC = () => {
   );
 
   const containerStyle = [
-    commonStyles.container,
-    isWeb && commonStyles.webContainer,
+    styles.container,
+    isWeb && styles.webContainer,
   ];
 
   const contentContainerStyle = [
-    isWeb ? {
-      width: '100%',
-      maxWidth: '100vw',
-      paddingHorizontal: 0,
-      flex: 1, // Allow container to expand
-    } : commonStyles.webContent,
-    isDesktop && {
-      paddingTop: spacing.lg,
-    }
+    styles.content,
+    isDesktop && styles.webContent,
+    isDesktop && styles.desktopContent,
   ];
 
   return (
@@ -561,26 +562,45 @@ const ProductsScreen: React.FC = () => {
           </View>
         ) : filteredProducts.length === 0 ? (
           renderEmptyState()
+        ) : isDesktop ? (
+          // Desktop: Scrollable grid layout
+          <ScrollView
+            style={styles.desktopGrid}
+            contentContainerStyle={styles.desktopGridContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isLoading}
+                onRefresh={loadProducts}
+              />
+            }
+          >
+            {filteredProducts.map((item) => (
+              <View key={item.id} style={styles.desktopGridItem}>
+                {renderDesktopProduct({ item })}
+              </View>
+            ))}
+          </ScrollView>
         ) : (
+          // Mobile: Standard FlatList
           <FlatList
             data={filteredProducts}
-            renderItem={renderProduct}
+            renderItem={renderMobileProduct}
             keyExtractor={(item) => item.id}
-            numColumns={getNumColumns()} // Use same logic for both web and mobile
-            key={`${getNumColumns()}-${dimensions.width}`} // Force re-render when columns or width changes
-            contentContainerStyle={[
-              styles.productsList,
-              {
-                paddingHorizontal: spacing.md,
-                paddingTop: spacing.md,
-                paddingBottom: spacing.xl,
-                // Remove conflicting flexDirection/flexWrap for web
-              }
-            ]}
+            contentContainerStyle={styles.productsList}
             refreshing={isLoading}
             onRefresh={loadProducts}
             showsVerticalScrollIndicator={false}
-            style={{ flex: 1 }} // Ensure FlatList can expand to take available space
+            style={styles.flatListContainer}
+            getItemLayout={(data, index) => ({
+              length: 120,
+              offset: 120 * index,
+              index,
+            })}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={10}
           />
         )}
       </View>
@@ -591,13 +611,10 @@ const ProductsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#ffffff",
   },
   webContainer: {
-    backgroundColor: "#f8f9fa",
-  },
-  desktopContainer: {
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#ffffff",
   },
   content: {
     flex: 1,
@@ -666,132 +683,156 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   productsList: {
-    // Responsive padding handled inline
+    paddingVertical: spacing.xs,
   },
-  productCard: {
-    backgroundColor: "#fff",
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-      }
-    }),
+  flatListContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
   },
-  productCardDesktop: {
-    ...Platform.select({
-      web: {
-        '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
-        }
-      }
-    }),
+  
+  // Deliveroo-style list item
+  productItem: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
-  productImage: {
-    width: "100%",
-    backgroundColor: "#E0E0E0",
-    resizeMode: 'cover',
+  productContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  productInfo: {
+    flex: 1,
+    paddingRight: spacing.md,
   },
   productName: {
     color: "#1a1a1a",
-    marginBottom: spacing.xs,
     fontWeight: "600",
+    marginBottom: spacing.xs,
   },
   productDescription: {
     color: "#666",
-    marginBottom: spacing.md,
     lineHeight: 20,
+    marginBottom: spacing.sm,
   },
   productPrice: {
     color: "#2ECC71",
     fontWeight: "700",
   },
-  productFooter: {
+  productImageContainer: {
+    position: "relative",
+    width: 90,
+    height: 90,
+  },
+  productImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 8,
+    backgroundColor: "#E0E0E0",
+  },
+  itemDivider: {
+    marginTop: spacing.md,
+    backgroundColor: "#f0f0f0",
+  },
+
+  // Desktop layout using Paper's standard components
+  desktopGrid: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  desktopGridContent: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
+    padding: spacing.md,
+    paddingBottom: spacing.xl, // Extra padding at bottom
+  },
+  desktopGridItem: {
+    width: "23%", // 4-column layout with space for margins
+    marginBottom: spacing.lg,
+  },
+  desktopCardContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  desktopCard: {
+    backgroundColor: "#ffffff",
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+        }
+      }
+    }),
+  },
+  desktopCardImage: {
+    height: 180,
+    backgroundColor: "#E0E0E0",
+  },
+  desktopCardActions: {
+    position: "absolute",
+    top: spacing.sm,
+    right: spacing.sm,
+    backgroundColor: "transparent",
+    padding: 0,
+    minHeight: 0,
+  },
+  desktopCardContent: {
+    padding: spacing.md,
+  },
+  
+  // FAB styles
+  fabOverlay: {
+    position: "absolute",
+    bottom: -8,
+    right: -8,
+  },
+  fabContainer: {
     alignItems: "center",
-    marginTop: spacing.sm,
+    justifyContent: "center",
   },
-  productFooterFixed: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-    // Price stays in fixed position, no space-between layout
+  addFab: {
+    backgroundColor: "#2ECC71",
   },
-  quantityControls: {
+  expandedFab: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    padding: 4,
+    backgroundColor: "#2ECC71",
+    borderRadius: 20, // Smaller border radius to match 40px height
+    paddingHorizontal: spacing.xs,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 8,
   },
-  quantityButton: {
-    margin: 0,
+  fabButton: {
     width: 28,
     height: 28,
-  },
-  quantityText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#2ECC71",
-    marginHorizontal: 6,
-    minWidth: 20,
-    textAlign: "center",
-  },
-  // New animated quantity control styles
-  quantityContainer: {
-    position: "absolute",
-    bottom: spacing.sm,
-    right: spacing.md,
-    height: 32, // Fixed height to prevent layout shifts
-  },
-  quantityControlsFixed: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.98)",
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-    overflow: "hidden", // Hide elements sliding outside
-  },
-  minusButtonContainer: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-  },
-  quantityButtonAnimated: {
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
   },
-  plusButton: {
-    backgroundColor: "#2ECC71",
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
-  quantityTextFixed: {
-    position: "absolute",
+  fabButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#2ECC71",
-    width: 24,
-    textAlign: "center",
   },
-  quantityButtonText: {
-    color: "white",
+  quantityContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.sm,
+  },
+  quantityText: {
+    color: "#ffffff",
     fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

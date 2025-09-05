@@ -9,7 +9,6 @@ import com.freshtrio.dto.RegisterRequest;
 import com.freshtrio.dto.UserDto;
 import com.freshtrio.entity.User;
 import com.freshtrio.repository.UserRepository;
-import com.freshtrio.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,7 +34,7 @@ public class AuthService {
 //    private PasswordEncoder passwordEncoder;
     
     @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtService jwtService;
     
     @Autowired
     private FirebaseService firebaseService;
@@ -61,7 +60,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         
         // Generate JWT token
-        String token = jwtTokenProvider.createToken(savedUser.getEmail(), savedUser.getRole());
+        String token = jwtService.generateToken(savedUser);
         
         return new AuthResponse(token, mapToUserDto(savedUser));
     }
@@ -75,17 +74,17 @@ public class AuthService {
         User user = (User) authentication.getPrincipal();
         
         // Generate JWT token
-        String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(user);
         
         return new AuthResponse(token, mapToUserDto(user));
     }
     
     public AuthResponse refreshToken(String token) {
-        String email = jwtTokenProvider.getUsername(token.replace("Bearer ", ""));
+        String email = jwtService.extractUsername(token);
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        String newToken = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+        String newToken = jwtService.generateToken(user);
         
         return new AuthResponse(newToken, mapToUserDto(user));
     }
@@ -98,7 +97,7 @@ public class AuthService {
     public AuthResponse googleAuth(GoogleAuthRequest request) {
         // In a real implementation, you would verify the Google ID token here
         // For now, we'll trust the client-side verification
-        
+
         // Check if user already exists
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         
@@ -126,7 +125,7 @@ public class AuthService {
         }
         
         // Generate JWT token
-        String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(user);
         
         return new AuthResponse(token, mapToUserDto(user));
     }
@@ -194,7 +193,7 @@ public class AuthService {
             }
             
             // Generate JWT token for our backend
-            String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+            String token = jwtService.generateToken(user);
             
             return new AuthResponse(token, mapToUserDto(user));
             

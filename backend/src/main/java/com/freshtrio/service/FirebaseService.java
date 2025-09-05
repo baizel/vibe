@@ -1,5 +1,6 @@
 package com.freshtrio.service;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -9,7 +10,20 @@ import org.springframework.stereotype.Service;
 public class FirebaseService {
     
     public FirebaseToken verifyIdToken(String idToken) throws FirebaseAuthException {
-        return FirebaseAuth.getInstance().verifyIdToken(idToken);
+        try {
+            // Ensure Firebase is initialized
+            if (FirebaseApp.getApps().isEmpty()) {
+                throw new RuntimeException("Firebase Admin SDK is not properly initialized. Please configure service account credentials.");
+            }
+            
+            return FirebaseAuth.getInstance().verifyIdToken(idToken);
+        } catch (FirebaseAuthException e) {
+            System.err.println("Failed to verify Firebase ID token: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Failed to verify Firebase ID token: " + e.getMessage());
+            throw new RuntimeException("Unable to verify Firebase token: " + e.getMessage(), e);
+        }
     }
     
     public String getUidFromToken(String idToken) throws FirebaseAuthException {

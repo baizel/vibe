@@ -1,4 +1,4 @@
-package com.freshtrio
+package com.yorkmart
 
 import android.app.Application
 import android.content.res.Configuration

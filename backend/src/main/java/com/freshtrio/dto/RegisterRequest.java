@@ -1,27 +1,13 @@
 package com.freshtrio.dto;
 
+import lombok.Data;
+
+@Data
 public class RegisterRequest {
-    public String getEmail() {
-        return "";
-    }
-
-    public CharSequence getPassword() {
-        return null;
-    }
-
-    public String getFirstName() {
-        return "";
-    }
-
-    public String getLastName() {
-        return "";
-    }
-
-    public String getPhone() {
-        return "";
-    }
-
-    public Boolean getGdprConsent() {
-        return null;
-    }
+    private String email;
+    private String password;
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private Boolean gdprConsent;
 }

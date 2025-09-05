@@ -44,7 +44,7 @@ if (getRNMinorVersion() >= 75) {
   }
 }
 
-rootProject.name = 'FreshTrio'
+rootProject.name = 'YorkMart'
 
 dependencyResolutionManagement {
   versionCatalogs {

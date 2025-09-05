@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "597482260340",
+    "project_id": "fresh-c7323",
+    "storage_bucket": "fresh-c7323.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597482260340:android:565dd34b9b1f5b20520e21",
+        "android_client_info": {
+          "package_name": "com.freshtrio.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "597482260340-n0s66bhgma69mj3td0p0rhlled71aqli.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshtrio.mobile",
+            "certificate_hash": "507e9237c04cad7211ac16829ecfce83b8915437"
+          }
+        },
+        {
+          "client_id": "597482260340-ur0gb874aspdemr6v7sl0u9u1iobjkol.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLuOgeMEOL6U3rdFOQ3vr0rOfhShcID4g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "597482260340-ur0gb874aspdemr6v7sl0u9u1iobjkol.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "597482260340-jscrqq6ie23bb6esomsq610bvcnia7ig.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.freshtrio.mobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

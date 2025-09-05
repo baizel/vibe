@@ -46,8 +46,8 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private AuthProvider authProvider = AuthProvider.EMAIL;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "address_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "address_id", nullable = true)
     private Address address;
 
     @Enumerated(EnumType.STRING)

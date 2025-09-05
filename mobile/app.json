@@ -11,19 +11,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.freshtrio.mobile"
+      "bundleIdentifier": "com.freshtrio.mobile",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.freshtrio.mobile"
+      "package": "com.freshtrio.mobile",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -32,12 +32,22 @@
     },
     "plugins": [
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-dev-client",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/app",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.597482260340-jscrqq6ie23bb6esomsq610bvcnia7ig"
+        }
+      ]
     ],
     "extra": {
       "eas": {
         "projectId": "c96f9448-911f-4f0c-8d7b-cdf965a49116"
-      }
+      },
+      "apiUrl": "http://192.168.68.65:8080/api"
     },
     "owner": "baizel"
   }
